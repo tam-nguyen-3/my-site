@@ -1,0 +1,295 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectMedia from '../components/ProjectMedia.astro';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+const projectDetails = await Promise.all(
+  projects.map(async (project) => ({
+    project,
+    Content: (await render(project)).Content,
+  }))
+);
+---
+
+<BaseLayout
+  title="Projects"
+  description="Technical projects by Tam Nguyen, from machine learning experiments and research tools to full-stack applications."
+>
+  <section class="page-head">
+    <h1 class="page-title">Projects</h1>
+    <p class="intro">
+      A collection of technical things I’ve built and explored, from machine learning
+      experiments and research tools to full-stack applications.
+    </p>
+  </section>
+
+  <section class="project-grid" aria-label="Projects">
+    {
+      projectDetails.map(({ project }) => (
+        <article class="project-card">
+          <ProjectMedia project={project} />
+          <div class="card-copy">
+            <h2 class="card-title">{project.data.title}</h2>
+            <p class="card-brief">{project.data.brief}</p>
+            <div class="tags" aria-label="Main technologies">
+              {project.data.tags.map((tag) => <span class="pill">{tag}</span>)}
+            </div>
+            <span class="details-hint" aria-hidden="true">Read details <span>→</span></span>
+          </div>
+          <button
+            class="card-open"
+            type="button"
+            aria-label={`Read details about ${project.data.title}`}
+            aria-haspopup="dialog"
+            data-project-trigger={project.id}
+          ></button>
+          <div class="card-links" aria-label={`${project.data.title} links`}>
+            {project.data.links.map((link) => (
+              <a href={link.href} target="_blank" rel="noopener noreferrer" class="link">
+                {link.label}<span aria-hidden="true"> ↗</span>
+              </a>
+            ))}
+          </div>
+        </article>
+      ))
+    }
+  </section>
+
+  {
+    projectDetails.map(({ project, Content }) => (
+      <dialog id={`project-dialog-${project.id}`} class="project-dialog" aria-labelledby={`dialog-title-${project.id}`}>
+        <div class="dialog-toolbar">
+          <button class="dialog-close" type="button" aria-label={`Close ${project.data.title} details`} data-dialog-close>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+              <path d="M5 5 19 19M19 5 5 19" />
+            </svg>
+          </button>
+        </div>
+        <ProjectMedia project={project} />
+        <div class="dialog-content">
+          <h2 id={`dialog-title-${project.id}`} class="dialog-title">{project.data.title}</h2>
+          <p class="dialog-brief">{project.data.brief}</p>
+          <div class="dialog-links" aria-label={`${project.data.title} links`}>
+            {project.data.links.map((link) => (
+              <a href={link.href} target="_blank" rel="noopener noreferrer" class="link">
+                {link.label}<span aria-hidden="true"> ↗</span>
+              </a>
+            ))}
+          </div>
+          <div class="tags" aria-label="Main technologies">
+            {project.data.tags.map((tag) => <span class="pill">{tag}</span>)}
+          </div>
+          <div class="detail-body prose"><Content /></div>
+        </div>
+      </dialog>
+    ))
+  }
+</BaseLayout>
+
+<script>
+  const triggers = document.querySelectorAll<HTMLButtonElement>('[data-project-trigger]');
+  const dialogs = document.querySelectorAll<HTMLDialogElement>('.project-dialog');
+  let activeTrigger: HTMLButtonElement | null = null;
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      const dialog = document.getElementById(`project-dialog-${trigger.dataset.projectTrigger}`);
+      if (!(dialog instanceof HTMLDialogElement)) return;
+
+      activeTrigger = trigger;
+      dialog.showModal();
+      document.documentElement.classList.add('project-dialog-open');
+      dialog.querySelector<HTMLButtonElement>('[data-dialog-close]')?.focus();
+    });
+  });
+
+  dialogs.forEach((dialog) => {
+    dialog.querySelector<HTMLButtonElement>('[data-dialog-close]')?.addEventListener('click', () => {
+      dialog.close();
+    });
+
+    dialog.addEventListener('click', (event) => {
+      if (event.target !== dialog) return;
+      const bounds = dialog.getBoundingClientRect();
+      const outside = event.clientX < bounds.left || event.clientX > bounds.right ||
+        event.clientY < bounds.top || event.clientY > bounds.bottom;
+      if (outside) dialog.close();
+    });
+
+    dialog.addEventListener('close', () => {
+      document.documentElement.classList.remove('project-dialog-open');
+      activeTrigger?.focus({ preventScroll: true });
+      activeTrigger = null;
+    });
+  });
+</script>
+
+<style>
+  .page-head {
+    max-width: var(--measure);
+    padding-top: clamp(2rem, 6vw, 3.5rem);
+  }
+
+  .page-title { font-size: var(--fs-title); }
+
+  .intro {
+    margin-top: 0.75rem;
+    max-width: 56ch;
+    color: var(--muted);
+  }
+
+  .project-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-block: var(--section-gap);
+  }
+
+  .project-card {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--hairline);
+    transition: border-color 0.15s ease;
+  }
+
+  .project-card:hover,
+  .project-card:focus-within { border-color: var(--accent-quiet); }
+
+  .card-copy {
+    flex: 1;
+    padding: 1.2rem 1.25rem 0.8rem;
+  }
+
+  .card-title { font-size: var(--fs-h2); }
+
+  .card-brief {
+    margin-top: 0.55rem;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1rem;
+  }
+
+  .details-hint {
+    display: inline-block;
+    margin-top: 1.25rem;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+
+  .details-hint span { color: var(--accent); }
+
+  .card-open {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
+
+  .card-open:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  .card-links {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    padding: 0 1.25rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  .card-links a,
+  .dialog-links a { overflow-wrap: anywhere; }
+
+  :global(html.project-dialog-open),
+  :global(html.project-dialog-open body) { overflow: hidden; }
+
+  .project-dialog {
+    width: min(var(--measure), calc(100vw - var(--gutter) - var(--gutter)));
+    max-width: none;
+    max-height: calc(100vh - var(--gutter) - var(--gutter));
+    max-height: calc(100dvh - var(--gutter) - var(--gutter));
+    margin: auto;
+    padding: 0;
+    overflow-y: auto;
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .project-dialog::backdrop { background: var(--dialog-backdrop); }
+
+  .project-dialog[open] { animation: dialog-enter 0.18s ease-out; }
+
+  @keyframes dialog-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .dialog-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem;
+    background: var(--paper);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .dialog-close {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--muted);
+  }
+
+  .dialog-close:hover { color: var(--accent); }
+
+  .dialog-content { padding: 1.5rem clamp(1.25rem, 4vw, 2rem) 2rem; }
+
+  .dialog-title { font-size: var(--fs-title); }
+
+  .dialog-brief {
+    margin-top: 0.8rem;
+    color: var(--muted);
+  }
+
+  .dialog-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin-top: 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  .detail-body {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--hairline);
+  }
+
+  @media (min-width: 768px) {
+    .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-dialog[open] { animation: none; }
+  }
+</style>

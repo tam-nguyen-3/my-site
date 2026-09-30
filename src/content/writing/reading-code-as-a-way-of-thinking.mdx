@@ -1,0 +1,33 @@
+---
+title: Reading code as a way of thinking
+description: Notes from a year of reading other people's codebases end to end — what stuck, what surprised me.
+pubDate: 2025-11-04
+tags: ['reading', 'systems']
+---
+
+For about a year I made a habit of reading codebases the way I'd read a book:
+start to finish, no skipping to the parts I needed. It was slower than searching,
+and far more useful than I expected. Here are the notes that stuck.
+
+## You learn the shape before the details
+
+The first pass is never about understanding every line. It's about finding the
+seams — where one concern hands off to another, which module everything depends
+on, where the author clearly changed their mind. Codebases have a grain, and
+reading top to bottom is how you feel it.
+
+## Naming is an argument
+
+Every name is the author telling you how they think about the problem. When the
+names are consistent, the mental model is intact. When they drift, you've usually
+found the place where the design outgrew its original idea — and that's the most
+interesting place to be.
+
+## What surprised me
+
+- The best code was rarely the cleverest; it was the most *legible*.
+- Comments aged badly, but tests aged well — they're executable intent.
+- I understood my own code better after reading strangers'.
+
+Reading code turned out to be less about the code and more about the thinking
+behind it. That's the part worth practicing.

@@ -1,0 +1,61 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const primaryLink = project.data.links[0];
+---
+
+<a class="project linked" href={primaryLink.href} target="_blank" rel="noopener noreferrer">
+  <div class="head">
+    <h3 class="title">{project.data.title}</h3>
+    <svg class="arrow" viewBox="0 0 24 24" width="16" height="16" fill="none"
+      stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+      aria-hidden="true">
+      <path d="M7 17 17 7M8 7h9v9" />
+    </svg>
+  </div>
+  <p class="desc">{project.data.brief}</p>
+  <p class="meta tags">{project.data.tags.join(' · ')}</p>
+</a>
+
+<style>
+  .project {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding-block: 1.1rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .project:first-child { border-top: none; }
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .title {
+    font-size: var(--fs-h3);
+    transition: color 0.15s ease;
+  }
+  .arrow {
+    color: var(--faint);
+    flex-shrink: 0;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+  .desc {
+    margin-top: 0.3rem;
+    color: var(--muted);
+  }
+  .tags {
+    margin-top: 0.55rem;
+  }
+  .project.linked:hover .title { color: var(--accent); }
+  .project.linked:hover .arrow {
+    color: var(--accent);
+    transform: translate(2px, -2px);
+  }
+</style>

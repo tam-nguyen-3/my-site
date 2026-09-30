@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+
+const posts = (await getCollection('writing', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
+);
+---
+
+<BaseLayout
+  title="Writing"
+  description="Occasional essays and notes on software, systems, and the craft of engineering."
+>
+  <section class="head">
+    <h1 class="page-title">Writing</h1>
+    <p class="intro">
+      Occasional essays and notes on software, systems, and the craft of engineering.
+    </p>
+  </section>
+
+  <section class="list">
+    {posts.map((post) => <PostCard post={post} />)}
+  </section>
+</BaseLayout>
+
+<style>
+  /* Pin the writing index to the reading column within the wide container. */
+  .head,
+  .list {
+    max-width: var(--measure);
+    margin-inline: auto;
+  }
+  .head { padding-top: clamp(2rem, 6vw, 3.5rem); }
+  .page-title { font-size: var(--fs-title); }
+  .intro {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    max-width: 56ch;
+  }
+  .list { padding-top: var(--section-gap); }
+</style>

@@ -1,0 +1,76 @@
+---
+import type { ExperienceItem } from '../data/experience';
+
+interface Props {
+  item: ExperienceItem;
+}
+
+const { item } = Astro.props;
+const initial = item.org.trim().charAt(0).toUpperCase();
+---
+
+<article class="item">
+  {
+    item.logo ? (
+      <img class="logo" src={item.logo} alt={`${item.org} logo`} width="48" height="48" />
+    ) : (
+      <div class="logo logo--mono" aria-hidden="true">{initial}</div>
+    )
+  }
+  <div class="item-body">
+    <div class="item-head">
+      <h3 class="role">
+        {item.role} <span class="org">· {item.org}</span>
+      </h3>
+      <p class="meta period">{item.period}</p>
+    </div>
+    <p class="item-desc">{item.description}</p>
+  </div>
+</article>
+
+<style>
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--hairline);
+    background: var(--code-bg);
+  }
+  .logo--mono {
+    display: grid;
+    place-items: center;
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .item-body { flex: 1; min-width: 0; }
+  .item-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .role {
+    font-size: var(--fs-h3);
+    font-weight: 460;
+  }
+  .org {
+    color: var(--muted);
+    font-style: italic;
+  }
+  .period { flex-shrink: 0; }
+  .item-desc {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    max-width: 60ch;
+  }
+</style>

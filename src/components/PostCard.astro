@@ -1,0 +1,49 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'writing'>;
+}
+
+const { post } = Astro.props;
+const href = `/writing/${post.id}`;
+const dateLabel = post.data.pubDate
+  .toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' })
+  .toUpperCase();
+---
+
+<article class="post">
+  <p class="meta">{dateLabel}</p>
+  <h3 class="title"><a href={href}>{post.data.title}</a></h3>
+  <p class="desc">{post.data.description}</p>
+  <a href={href} class="action" aria-label={`Read: ${post.data.title}`}>
+    Read
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+      stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  </a>
+</article>
+
+<style>
+  .post {
+    padding-block: 1.75rem;
+    border-top: 1px solid var(--hairline);
+  }
+  .post:first-child { border-top: none; padding-top: 0.5rem; }
+  .title {
+    font-size: clamp(1.4rem, 3vw, 1.7rem);
+    margin-top: 0.5rem;
+  }
+  .title a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.15s ease;
+  }
+  .title a:hover { color: var(--accent); }
+  .desc {
+    margin-top: 0.5rem;
+    color: var(--muted);
+  }
+  .action { margin-top: 0.9rem; }
+</style>
